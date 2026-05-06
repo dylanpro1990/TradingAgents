@@ -22,20 +22,20 @@ from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.llm_clients.model_catalog import MODEL_OPTIONS, get_model_options
 
 ANALYSTS = {
-    "market": "Market",
-    "social": "Social",
-    "news": "News",
-    "fundamentals": "Fundamentals",
+    "market": "市场",
+    "social": "社交",
+    "news": "新闻",
+    "fundamentals": "基本面",
 }
 SECTION_TABS = {
-    "market_report": "Market",
-    "sentiment_report": "Social",
-    "news_report": "News",
-    "fundamentals_report": "Fundamentals",
-    "investment_plan": "Research",
-    "trader_investment_plan": "Trader",
-    "risk_assessment": "Risk",
-    "final_trade_decision": "Final",
+    "market_report": "市场",
+    "sentiment_report": "社交",
+    "news_report": "新闻",
+    "fundamentals_report": "基本面",
+    "investment_plan": "研究",
+    "trader_investment_plan": "交易",
+    "risk_assessment": "风险",
+    "final_trade_decision": "最终",
 }
 PROVIDERS = [
     "openai",
@@ -110,9 +110,9 @@ class TradingAgentsDesktop(ctk.CTk):
         subtitle.grid(row=1, column=0, padx=24, pady=(0, 20), sticky="w")
 
         self.ticker_entry = self._entry("Ticker / 股票代码", "002594", 2)
-        self.date_entry = self._entry("Analysis Date", datetime.date.today().isoformat(), 3)
+        self.date_entry = self._entry("分析日期", datetime.date.today().isoformat(), 3)
 
-        ctk.CTkLabel(self.sidebar_content, text="Analysts", font=ctk.CTkFont(weight="bold")).grid(
+        ctk.CTkLabel(self.sidebar_content, text="分析师", font=ctk.CTkFont(weight="bold")).grid(
             row=4, column=0, padx=24, pady=(14, 6), sticky="w"
         )
         analyst_frame = ctk.CTkFrame(self.sidebar_content, fg_color="transparent")
@@ -123,19 +123,19 @@ class TradingAgentsDesktop(ctk.CTk):
             checkbox = ctk.CTkCheckBox(analyst_frame, text=label, variable=var)
             checkbox.grid(row=index // 2, column=index % 2, padx=4, pady=6, sticky="w")
 
-        self.language_menu = self._option("Output Language", ["English", "中文"], "English", 6)
-        self.provider_menu = self._option("Provider", PROVIDERS, DEFAULT_CONFIG["llm_provider"], 7)
+        self.language_menu = self._option("输出语言", ["English", "中文"], "中文", 6)
+        self.provider_menu = self._option("模型提供商", PROVIDERS, DEFAULT_CONFIG["llm_provider"], 7)
         self.provider_menu.configure(command=self._on_provider_change)
 
-        self.quick_model_entry = self._entry("Quick Model", DEFAULT_CONFIG["quick_think_llm"], 8)
-        self.deep_model_entry = self._entry("Deep Model", DEFAULT_CONFIG["deep_think_llm"], 9)
-        self.backend_entry = self._entry("Backend URL", DEFAULT_BACKEND_URLS[DEFAULT_CONFIG["llm_provider"]] or "", 10)
-        self.depth_menu = self._option("Research Depth", ["1", "3", "5"], "1", 11)
+        self.quick_model_entry = self._entry("快速模型", DEFAULT_CONFIG["quick_think_llm"], 8)
+        self.deep_model_entry = self._entry("深度模型", DEFAULT_CONFIG["deep_think_llm"], 9)
+        self.backend_entry = self._entry("后端地址", DEFAULT_BACKEND_URLS[DEFAULT_CONFIG["llm_provider"]] or "", 10)
+        self.depth_menu = self._option("研究深度", ["1", "3", "5"], "1", 11)
 
         self.checkpoint_var = tk.BooleanVar(value=False)
         self.checkpoint_checkbox = ctk.CTkCheckBox(
             self.sidebar_content,
-            text="Enable checkpoint resume",
+            text="启用断点续跑",
             variable=self.checkpoint_var,
         )
         self.checkpoint_checkbox.grid(row=13, column=0, padx=24, pady=(18, 8), sticky="w")
@@ -149,7 +149,7 @@ class TradingAgentsDesktop(ctk.CTk):
         )
         self.run_button = ctk.CTkButton(
             self.sidebar_actions,
-            text="Start Analysis",
+            text="开始分析",
             height=44,
             font=ctk.CTkFont(size=15, weight="bold"),
             command=self._start_analysis,
@@ -158,7 +158,7 @@ class TradingAgentsDesktop(ctk.CTk):
 
         self.open_report_button = ctk.CTkButton(
             self.sidebar_actions,
-            text="Open Report Folder",
+            text="打开报告文件夹",
             fg_color="transparent",
             border_width=1,
             command=self._open_report_folder,
@@ -174,13 +174,13 @@ class TradingAgentsDesktop(ctk.CTk):
 
         self.decision_label = ctk.CTkLabel(
             header,
-            text="Ready",
+            text="就绪",
             font=ctk.CTkFont(size=34, weight="bold"),
         )
         self.decision_label.grid(row=0, column=0, padx=24, pady=(22, 4), sticky="w")
         self.status_label = ctk.CTkLabel(
             header,
-            text="Configure an analysis and click Start Analysis.",
+            text="配置分析参数后点击开始分析。",
             text_color=("gray35", "gray72"),
         )
         self.status_label.grid(row=1, column=0, padx=24, pady=(0, 18), sticky="w")
@@ -192,7 +192,7 @@ class TradingAgentsDesktop(ctk.CTk):
         action_bar.grid(row=1, column=0, sticky="ew", pady=(0, 12))
         self.copy_button = ctk.CTkButton(
             action_bar,
-            text="Copy Final Decision",
+            text="复制最终决策",
             width=170,
             command=self._copy_final_decision,
             state="disabled",
@@ -207,13 +207,13 @@ class TradingAgentsDesktop(ctk.CTk):
 
         self.tabs = ctk.CTkTabview(content)
         self.tabs.grid(row=0, column=0, sticky="nsew", padx=(12, 6), pady=12)
-        for tab_name in ["Market", "Social", "News", "Fundamentals", "Research", "Trader", "Risk", "Final"]:
+        for tab_name in ["市场", "社交", "新闻", "基本面", "研究", "交易", "风险", "最终"]:
             tab = self.tabs.add(tab_name)
             tab.grid_columnconfigure(0, weight=1)
             tab.grid_rowconfigure(0, weight=1)
             textbox = ctk.CTkTextbox(tab, wrap="word", font=ctk.CTkFont(size=14))
             textbox.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
-            textbox.insert("1.0", "Results will appear here during analysis.")
+            textbox.insert("1.0", "分析过程中结果会显示在这里。")
             textbox.configure(state="disabled")
             self.tab_textboxes[tab_name] = textbox
 
@@ -221,7 +221,7 @@ class TradingAgentsDesktop(ctk.CTk):
         log_panel.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=12)
         log_panel.grid_columnconfigure(0, weight=1)
         log_panel.grid_rowconfigure(1, weight=1)
-        ctk.CTkLabel(log_panel, text="Live Log", font=ctk.CTkFont(size=16, weight="bold")).grid(
+        ctk.CTkLabel(log_panel, text="实时日志", font=ctk.CTkFont(size=16, weight="bold")).grid(
             row=0, column=0, padx=14, pady=(14, 6), sticky="w"
         )
         self.log_text = ctk.CTkTextbox(log_panel, wrap="word", font=ctk.CTkFont(size=12), width=300)
@@ -260,7 +260,7 @@ class TradingAgentsDesktop(ctk.CTk):
 
     def _api_key_label(self, provider: str) -> str:
         env_var = PROVIDER_API_KEY_ENV.get(provider.lower())
-        return f"API Key ({env_var})" if env_var else "API Key (not required)"
+        return f"API Key（{env_var}）" if env_var else "API Key（无需填写）"
 
     def _on_provider_change(self, provider: str) -> None:
         provider = provider.lower()
@@ -290,9 +290,9 @@ class TradingAgentsDesktop(ctk.CTk):
         self.open_report_button.configure(state="disabled")
         self.copy_button.configure(state="disabled")
         self._clear_outputs()
-        self.decision_label.configure(text="Running")
-        self.status_label.configure(text="Starting analysis...")
-        self.run_button.configure(state="disabled", text="Running...")
+        self.decision_label.configure(text="运行中")
+        self.status_label.configure(text="正在启动分析...")
+        self.run_button.configure(state="disabled", text="运行中...")
         self.progress.start()
 
         self.worker = threading.Thread(
@@ -307,17 +307,17 @@ class TradingAgentsDesktop(ctk.CTk):
         analysis_date = self.date_entry.get().strip()
         analysts = [key for key, var in self.analyst_vars.items() if var.get()]
         if not ticker:
-            raise ValueError("Ticker is required.")
+            raise ValueError("请输入股票代码。")
         try:
             datetime.datetime.strptime(analysis_date, "%Y-%m-%d")
         except ValueError as exc:
-            raise ValueError("Analysis date must use YYYY-MM-DD format.") from exc
+            raise ValueError("分析日期必须使用 YYYY-MM-DD 格式。") from exc
         if not analysts:
-            raise ValueError("Select at least one analyst.")
+            raise ValueError("请至少选择一个分析师。")
         api_key = self.api_key_entry.get().strip()
         required_key = PROVIDER_API_KEY_ENV.get(self.provider_menu.get().lower())
         if required_key and not api_key and not os.environ.get(required_key):
-            raise ValueError(f"Please enter {required_key} in the API Key field.")
+            raise ValueError(f"请在 API Key 输入框填写 {required_key}。")
         return DesktopSelection(
             ticker=ticker,
             analysis_date=analysis_date,
@@ -353,8 +353,8 @@ class TradingAgentsDesktop(ctk.CTk):
             if tab_name:
                 self._set_tab_text(tab_name, event.get("content", ""))
         elif event_type == "decision":
-            self.decision_label.configure(text=event.get("decision", "Decision"))
-            self._set_tab_text("Final", event.get("content", ""))
+            self.decision_label.configure(text=event.get("decision", "决策"))
+            self._set_tab_text("最终", event.get("content", ""))
             self.copy_button.configure(state="normal")
         elif event_type == "report":
             self.report_path = Path(event["path"])
@@ -362,25 +362,25 @@ class TradingAgentsDesktop(ctk.CTk):
         elif event_type == "error":
             self.progress.stop()
             self.progress.set(0)
-            self.run_button.configure(state="normal", text="Start Analysis")
-            self.decision_label.configure(text="Error")
-            self.status_label.configure(text=event.get("text", "Analysis failed."))
-            self._append_log(f"Error: {event.get('text', '')}")
+            self.run_button.configure(state="normal", text="开始分析")
+            self.decision_label.configure(text="错误")
+            self.status_label.configure(text=event.get("text", "分析失败。"))
+            self._append_log(f"错误：{event.get('text', '')}")
         elif event_type == "done":
             self.progress.stop()
             self.progress.set(1)
-            self.run_button.configure(state="normal", text="Start Analysis")
-            self.status_label.configure(text=event.get("text", "Analysis complete."))
-            self._append_log(event.get("text", "Analysis complete."))
+            self.run_button.configure(state="normal", text="开始分析")
+            self.status_label.configure(text=event.get("text", "分析完成。"))
+            self._append_log(event.get("text", "分析完成。"))
 
     def _clear_outputs(self) -> None:
         for textbox in self.tab_textboxes.values():
-            self._replace_textbox(textbox, "Waiting for analysis output...")
+            self._replace_textbox(textbox, "等待分析输出...")
         self._replace_textbox(self.log_text, "")
 
     def _set_tab_text(self, tab_name: str, text: str) -> None:
         textbox = self.tab_textboxes[tab_name]
-        self._replace_textbox(textbox, text or "No content yet.")
+        self._replace_textbox(textbox, text or "暂无内容。")
 
     def _append_log(self, text: str) -> None:
         if not text:
@@ -403,10 +403,10 @@ class TradingAgentsDesktop(ctk.CTk):
         entry.insert(0, value)
 
     def _copy_final_decision(self) -> None:
-        text = self.tab_textboxes["Final"].get("1.0", "end").strip()
+        text = self.tab_textboxes["最终"].get("1.0", "end").strip()
         self.clipboard_clear()
         self.clipboard_append(text)
-        self.status_label.configure(text="Final decision copied to clipboard.")
+        self.status_label.configure(text="最终决策已复制到剪贴板。")
 
     def _open_report_folder(self) -> None:
         if not self.report_path:

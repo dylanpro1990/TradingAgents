@@ -20,18 +20,30 @@ from tradingagents.agents.utils.news_data_tools import (
 )
 
 
-def get_language_instruction() -> str:
-    """Return a prompt instruction for the configured output language.
-
-    Returns empty string when English (default), so no extra tokens are used.
-    Only applied to user-facing agents (analysts, portfolio manager).
-    Internal debate agents stay in English for reasoning quality.
-    """
+def get_output_language() -> str:
     from tradingagents.dataflows.config import get_config
-    lang = get_config().get("output_language", "English")
-    if lang.strip().lower() == "english":
+
+    return get_config().get("output_language", "English")
+
+
+def is_chinese_output() -> bool:
+    return get_output_language().strip().lower() in {"中文", "chinese", "zh", "zh-cn", "简体中文"}
+
+
+def localized_text(english: str, chinese: str) -> str:
+    return chinese if is_chinese_output() else english
+
+
+def get_language_instruction() -> str:
+    """Return a prompt instruction for the configured output language."""
+    lang = get_output_language()
+    if not is_chinese_output() and lang.strip().lower() == "english":
         return ""
-    return f" Write your entire response in {lang}."
+    return (
+        f" Write your entire response in {lang}. Translate all user-facing headings, "
+        "labels, recommendations, rationales, and action descriptions into that language; "
+        "do not leave English section titles in the final report."
+    )
 
 
 def build_instrument_context(ticker: str) -> str:

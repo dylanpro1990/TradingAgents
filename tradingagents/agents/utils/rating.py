@@ -22,6 +22,21 @@ RATINGS_5_TIER: Tuple[str, ...] = (
 
 _RATING_SET = {r.lower() for r in RATINGS_5_TIER}
 
+RATING_LABELS_ZH = {
+    "Buy": "买入",
+    "Overweight": "增持",
+    "Hold": "持有",
+    "Underweight": "减持",
+    "Sell": "卖出",
+}
+
+
+def localize_rating(rating: str, language: str = "English") -> str:
+    if language.strip().lower() in {"中文", "chinese", "zh", "zh-cn", "简体中文"}:
+        return RATING_LABELS_ZH.get(rating, rating)
+    return rating
+
+
 # Matches "Rating: X" / "rating - X" / "Rating: **X**" — tolerates markdown
 # bold wrappers and either a colon or hyphen separator.
 _RATING_LABEL_RE = re.compile(r"rating.*?[:\-][\s*]*(\w+)", re.IGNORECASE)

@@ -7,6 +7,7 @@ from desktop.reporting import assemble_report, extract_sections
 from desktop.runner import (
     DesktopSelection,
     _apply_api_key,
+    _localized,
     build_config,
     normalize_analysts,
     normalize_ticker_input,
@@ -75,7 +76,19 @@ class DesktopRunnerTests(unittest.TestCase):
 
         self.assertEqual(os.environ["DEEPSEEK_API_KEY"], "secret-key")
 
-    def test_normalize_ticker_input_maps_common_chinese_names(self):
+    def test_localized_returns_chinese_when_selected(self):
+        selection = DesktopSelection(
+            ticker="002594",
+            analysis_date="2026-01-15",
+            analysts=["market"],
+            llm_provider="deepseek",
+            quick_think_llm="deepseek-chat",
+            deep_think_llm="deepseek-reasoner",
+            output_language="中文",
+        )
+
+        self.assertEqual(_localized(selection, "Analysis complete.", "分析完成。"), "分析完成。")
+
         self.assertEqual(normalize_ticker_input("比亚迪"), "002594.SZ")
         self.assertEqual(normalize_ticker_input("腾讯"), "0700.HK")
         self.assertEqual(normalize_ticker_input("nvda"), "NVDA")
@@ -115,9 +128,9 @@ class DesktopRunnerTests(unittest.TestCase):
         )
 
         self.assertEqual(sections["market_report"], "Market content")
-        self.assertIn("### Bull Researcher", sections["investment_plan"])
+        self.assertIn("### 多方研究员", sections["investment_plan"])
         self.assertIn("Manager call", sections["investment_plan"])
-        self.assertIn("### Portfolio Manager", sections["risk_assessment"])
+        self.assertIn("### 组合经理", sections["risk_assessment"])
         self.assertEqual(sections["final_trade_decision"], "Hold")
 
     def test_assemble_report_includes_core_metadata_and_sections(self):
@@ -131,8 +144,8 @@ class DesktopRunnerTests(unittest.TestCase):
             },
         )
 
-        self.assertIn("# Trading Analysis Report: NVDA", report)
-        self.assertIn("Analysis date: 2026-01-15", report)
-        self.assertIn("## Market Analyst", report)
-        self.assertIn("## Risk Management", report)
-        self.assertIn("## Portfolio Manager Decision", report)
+        self.assertIn("# 交易分析报告：NVDA", report)
+        self.assertIn("分析日期：2026-01-15", report)
+        self.assertIn("## 市场分析", report)
+        self.assertIn("## 风险管理", report)
+        self.assertIn("## 组合经理决策", report)

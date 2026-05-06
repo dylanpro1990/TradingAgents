@@ -23,6 +23,9 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from tradingagents.agents.utils.agent_utils import get_output_language
+from tradingagents.agents.utils.rating import localize_rating
+
 
 # ---------------------------------------------------------------------------
 # Shared rating types
@@ -53,9 +56,16 @@ class TraderAction(str, Enum):
     SELL = "Sell"
 
 
-# ---------------------------------------------------------------------------
-# Research Manager
-# ---------------------------------------------------------------------------
+def _is_chinese_output() -> bool:
+    return get_output_language().strip().lower() in {"中文", "chinese", "zh", "zh-cn", "简体中文"}
+
+
+def _label(english: str, chinese: str) -> str:
+    return chinese if _is_chinese_output() else english
+
+
+def _display_rating(value: str) -> str:
+    return localize_rating(value, get_output_language())
 
 
 class ResearchPlan(BaseModel):
@@ -93,11 +103,11 @@ class ResearchPlan(BaseModel):
 def render_research_plan(plan: ResearchPlan) -> str:
     """Render a ResearchPlan to markdown for storage and the trader's prompt context."""
     return "\n".join([
-        f"**Recommendation**: {plan.recommendation.value}",
+        f"**{_label('Recommendation', '投资建议')}**: {_display_rating(plan.recommendation.value)}",
         "",
-        f"**Rationale**: {plan.rationale}",
+        f"**{_label('Rationale', '理由')}**: {plan.rationale}",
         "",
-        f"**Strategic Actions**: {plan.strategic_actions}",
+        f"**{_label('Strategic Actions', '操作策略')}**: {plan.strategic_actions}",
     ])
 
 
@@ -146,19 +156,20 @@ def render_trader_proposal(proposal: TraderProposal) -> str:
     and any external code that greps for it.
     """
     parts = [
-        f"**Action**: {proposal.action.value}",
+        f"**{_label('Action', '操作')}**: {_display_rating(proposal.action.value)}",
         "",
-        f"**Reasoning**: {proposal.reasoning}",
+        f"**{_label('Reasoning', '理由')}**: {proposal.reasoning}",
     ]
     if proposal.entry_price is not None:
-        parts.extend(["", f"**Entry Price**: {proposal.entry_price}"])
+        parts.extend(["", f"**{_label('Entry Price', '入场价格')}**: {proposal.entry_price}"])
     if proposal.stop_loss is not None:
-        parts.extend(["", f"**Stop Loss**: {proposal.stop_loss}"])
+        parts.extend(["", f"**{_label('Stop Loss', '止损价格')}**: {proposal.stop_loss}"])
     if proposal.position_sizing:
-        parts.extend(["", f"**Position Sizing**: {proposal.position_sizing}"])
+        parts.extend(["", f"**{_label('Position Sizing', '仓位建议')}**: {proposal.position_sizing}"])
+    final_label = _label('FINAL TRANSACTION PROPOSAL', '最终交易建议')
     parts.extend([
         "",
-        f"FINAL TRANSACTION PROPOSAL: **{proposal.action.value.upper()}**",
+        f"{final_label}: **{_display_rating(proposal.action.value).upper()}**",
     ])
     return "\n".join(parts)
 
@@ -215,14 +226,14 @@ def render_pm_decision(decision: PortfolioDecision) -> str:
     parsers and the report writers already handle.
     """
     parts = [
-        f"**Rating**: {decision.rating.value}",
+        f"**{_label('Rating', '评级')}**: {_display_rating(decision.rating.value)}",
         "",
-        f"**Executive Summary**: {decision.executive_summary}",
+        f"**{_label('Executive Summary', '执行摘要')}**: {decision.executive_summary}",
         "",
-        f"**Investment Thesis**: {decision.investment_thesis}",
+        f"**{_label('Investment Thesis', '投资逻辑')}**: {decision.investment_thesis}",
     ]
     if decision.price_target is not None:
-        parts.extend(["", f"**Price Target**: {decision.price_target}"])
+        parts.extend(["", f"**{_label('Price Target', '目标价格')}**: {decision.price_target}"])
     if decision.time_horizon:
-        parts.extend(["", f"**Time Horizon**: {decision.time_horizon}"])
+        parts.extend(["", f"**{_label('Time Horizon', '持有周期')}**: {decision.time_horizon}"])
     return "\n".join(parts)

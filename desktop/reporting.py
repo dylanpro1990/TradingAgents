@@ -6,14 +6,14 @@ from typing import Any
 
 
 REPORT_SECTIONS = {
-    "market_report": ("Market Analyst", "market.md"),
-    "sentiment_report": ("Social Analyst", "social.md"),
-    "news_report": ("News Analyst", "news.md"),
-    "fundamentals_report": ("Fundamentals Analyst", "fundamentals.md"),
-    "investment_plan": ("Research Debate", "research.md"),
-    "trader_investment_plan": ("Trader Plan", "trader.md"),
-    "risk_assessment": ("Risk Management", "risk.md"),
-    "final_trade_decision": ("Portfolio Manager Decision", "decision.md"),
+    "market_report": ("市场分析", "market.md"),
+    "sentiment_report": ("社交情绪分析", "social.md"),
+    "news_report": ("新闻分析", "news.md"),
+    "fundamentals_report": ("基本面分析", "fundamentals.md"),
+    "investment_plan": ("研究辩论", "research.md"),
+    "trader_investment_plan": ("交易计划", "trader.md"),
+    "risk_assessment": ("风险管理", "risk.md"),
+    "final_trade_decision": ("组合经理决策", "decision.md"),
 }
 
 
@@ -29,9 +29,9 @@ def extract_sections(state: dict[str, Any]) -> dict[str, str]:
         "investment_plan": "\n\n".join(
             part
             for part in (
-                _section_text("Bull Researcher", investment_debate.get("bull_history")),
-                _section_text("Bear Researcher", investment_debate.get("bear_history")),
-                _section_text("Research Manager", investment_debate.get("judge_decision")),
+                _section_text("多方研究员", investment_debate.get("bull_history")),
+                _section_text("空方研究员", investment_debate.get("bear_history")),
+                _section_text("研究经理", investment_debate.get("judge_decision")),
             )
             if part
         ),
@@ -39,10 +39,10 @@ def extract_sections(state: dict[str, Any]) -> dict[str, str]:
         "risk_assessment": "\n\n".join(
             part
             for part in (
-                _section_text("Aggressive Analyst", risk_debate.get("aggressive_history")),
-                _section_text("Conservative Analyst", risk_debate.get("conservative_history")),
-                _section_text("Neutral Analyst", risk_debate.get("neutral_history")),
-                _section_text("Portfolio Manager", risk_debate.get("judge_decision")),
+                _section_text("激进风险分析师", risk_debate.get("aggressive_history")),
+                _section_text("保守风险分析师", risk_debate.get("conservative_history")),
+                _section_text("中性风险分析师", risk_debate.get("neutral_history")),
+                _section_text("组合经理", risk_debate.get("judge_decision")),
             )
             if part
         ),
@@ -52,10 +52,10 @@ def extract_sections(state: dict[str, Any]) -> dict[str, str]:
 
 
 def assemble_report(ticker: str, trade_date: str, state: dict[str, Any]) -> str:
-    title = f"# Trading Analysis Report: {ticker}\n\n"
+    title = f"# 交易分析报告：{ticker}\n\n"
     metadata = (
-        f"- Analysis date: {trade_date}\n"
-        f"- Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        f"- 分析日期：{trade_date}\n"
+        f"- 生成时间：{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
     )
     sections = []
     for key, (heading, _) in REPORT_SECTIONS.items():

@@ -7,6 +7,7 @@ from queue import Queue
 from typing import Any, Literal
 
 from cli.utils import normalize_ticker_symbol
+from tradingagents.agents.utils.rating import localize_rating
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.graph.checkpointer import clear_checkpoint, get_checkpointer, thread_id
 from tradingagents.graph.trading_graph import TradingAgentsGraph
@@ -136,10 +137,10 @@ def run_analysis(selection: DesktopSelection, event_queue: Queue[dict[str, Any]]
         _apply_api_key(selection)
 
         if ticker != selection.ticker.strip():
-            _emit(event_queue, "status", text=f"Mapped {selection.ticker.strip()} to ticker {ticker}.")
+            _emit(event_queue, "status", text=_localized(selection, f"Mapped {selection.ticker.strip()} to ticker {ticker}.", f"已将 {selection.ticker.strip()} 映射为股票代码 {ticker}。"))
         if is_a_share_ticker(ticker):
-            _emit(event_queue, "status", text="Using AkShare first for A-share price and indicator data.")
-        _emit(event_queue, "status", text="Initializing analysis graph...")
+            _emit(event_queue, "status", text=_localized(selection, "Using AkShare first for A-share price and indicator data.", "A 股价格和技术指标数据将优先使用 AkShare。"))
+        _emit(event_queue, "status", text=_localized(selection, "Initializing analysis graph...", "正在初始化分析图..."))
         graph = TradingAgentsGraph(
             selected_analysts=selected_analysts,
             config=config,
@@ -153,7 +154,7 @@ def run_analysis(selection: DesktopSelection, event_queue: Queue[dict[str, Any]]
             graph.graph = graph.workflow.compile(checkpointer=saver)
 
         try:
-            _emit(event_queue, "status", text=f"Analyzing {ticker} on {selection.analysis_date}...")
+            _emit(event_queue, "status", text=_localized(selection, f"Analyzing {ticker} on {selection.analysis_date}...", f"正在分析 {ticker}，日期 {selection.analysis_date}..."))
             graph._resolve_pending_entries(ticker)
             past_context = graph.memory_log.get_past_context(ticker)
             init_state = graph.propagator.create_initial_state(
@@ -184,11 +185,11 @@ def run_analysis(selection: DesktopSelection, event_queue: Queue[dict[str, Any]]
             if config.get("checkpoint_enabled"):
                 clear_checkpoint(config["data_cache_dir"], ticker, selection.analysis_date)
 
-            decision = graph.process_signal(final_state["final_trade_decision"])
+            decision = localize_rating(graph.process_signal(final_state["final_trade_decision"]), selection.output_language)
             report_path = save_report(Path(config["results_dir"]), ticker, selection.analysis_date, final_state)
             _emit(event_queue, "decision", decision=decision, content=final_state["final_trade_decision"])
             _emit(event_queue, "report", path=str(report_path))
-            _emit(event_queue, "done", text="Analysis complete.")
+            _emit(event_queue, "done", text=_localized(selection, "Analysis complete.", "分析完成。"))
         finally:
             if graph._checkpointer_ctx is not None:
                 graph._checkpointer_ctx.__exit__(None, None, None)
@@ -196,6 +197,10 @@ def run_analysis(selection: DesktopSelection, event_queue: Queue[dict[str, Any]]
                 graph.graph = graph.workflow.compile()
     except Exception as exc:
         _emit(event_queue, "error", text=str(exc))
+
+
+def _localized(selection: DesktopSelection, english: str, chinese: str) -> str:
+    return chinese if selection.output_language.strip().lower() in {"中文", "chinese", "zh", "zh-cn", "简体中文"} else english
 
 
 def _apply_api_key(selection: DesktopSelection) -> None:
@@ -221,7 +226,7 @@ def _publish_chunk(event_queue: Queue[dict[str, Any]], graph: TradingAgentsGraph
         _emit(
             event_queue,
             "decision",
-            decision=graph.process_signal(final_decision),
+            decision=localize_rating(graph.process_signal(final_decision), graph.config.get("output_language", "English")),
             content=final_decision,
         )
 
