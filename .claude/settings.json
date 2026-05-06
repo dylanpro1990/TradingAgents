@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv lock *)",
+      "Bash(python -m pytest tests -m unit)",
+      "Bash(python -m pytest tests/test_akshare_dataflows.py tests/test_desktop_runner.py)",
+      "Bash(python -m compileall desktop scripts/build_desktop_app.py)"
+    ]
+  }
+}

@@ -22,6 +22,12 @@ from .alpha_vantage import (
     get_news as get_alpha_vantage_news,
     get_global_news as get_alpha_vantage_global_news,
 )
+from .akshare_utils import (
+    AkShareConnectionError,
+    AkShareUnsupportedSymbolError,
+    get_stock_data as get_akshare_stock_data,
+    get_indicators as get_akshare_indicators,
+)
 from .alpha_vantage_common import AlphaVantageRateLimitError
 
 # Configuration and routing logic
@@ -61,6 +67,7 @@ TOOLS_CATEGORIES = {
 }
 
 VENDOR_LIST = [
+    "akshare",
     "yfinance",
     "alpha_vantage",
 ]
@@ -69,11 +76,13 @@ VENDOR_LIST = [
 VENDOR_METHODS = {
     # core_stock_apis
     "get_stock_data": {
+        "akshare": get_akshare_stock_data,
         "alpha_vantage": get_alpha_vantage_stock,
         "yfinance": get_YFin_data_online,
     },
     # technical_indicators
     "get_indicators": {
+        "akshare": get_akshare_indicators,
         "alpha_vantage": get_alpha_vantage_indicator,
         "yfinance": get_stock_stats_indicators_window,
     },
@@ -156,7 +165,7 @@ def route_to_vendor(method: str, *args, **kwargs):
 
         try:
             return impl_func(*args, **kwargs)
-        except AlphaVantageRateLimitError:
-            continue  # Only rate limits trigger fallback
+        except (AlphaVantageRateLimitError, AkShareConnectionError, AkShareUnsupportedSymbolError):
+            continue  # Try the next configured vendor when this vendor cannot serve the request
 
     raise RuntimeError(f"No available vendor for '{method}'")

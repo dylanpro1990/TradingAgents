@@ -17,6 +17,7 @@ dependencies = [
     "langchain-openai>=0.3.23",
     "langgraph>=0.4.8",
     "langgraph-checkpoint-sqlite>=2.0.0",
+    "akshare>=1.17.90",
     "pandas>=2.3.0",
     "parsel>=1.10.0",
     "pytz>=2025.2",
@@ -24,6 +25,7 @@ dependencies = [
     "redis>=6.2.0",
     "requests>=2.32.4",
     "rich>=14.0.0",
+    "customtkinter>=5.2.2",
     "typer>=0.21.0",
     "setuptools>=80.9.0",
     "stockstats>=0.6.5",
@@ -32,11 +34,17 @@ dependencies = [
     "yfinance>=0.2.63",
 ]
 
+[project.optional-dependencies]
+desktop-build = [
+    "pyinstaller>=6.15.0",
+]
+
 [project.scripts]
 tradingagents = "cli.main:app"
+tradingagents-desktop = "desktop.app:main"
 
 [tool.setuptools.packages.find]
-include = ["tradingagents*", "cli*"]
+include = ["tradingagents*", "cli*", "desktop*"]
 
 [tool.setuptools.package-data]
 cli = ["static/*"]
